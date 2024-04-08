@@ -32,6 +32,7 @@ def get_loss_function(lname):
 
 
 def train(opts):
+    print('Starting trainer')
     opts.export_dir.mkdir(exist_ok=True, parents=True)
     train_export_dir: Path = opts.export_dir / 'train'
     train_export_dir.mkdir(exist_ok=True)
@@ -40,15 +41,19 @@ def train(opts):
     run_name = opts.export_dir.name
 
     device = torch.device(torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu'))
+    print(f'using {device}')
+    print('loading train set')
     train_set = data.GenericDataset(opts.data, splat_size=opts.splat_size, cache=opts.cache,
                                     keys=opts.controls)
     control_vector_length = train_set.control_length()
 
+
+    print('loading test set')
     test_set = data.GenericDataset(opts.test_data, splat_size=opts.splat_size, cache=opts.cache,
                                    keys=opts.controls)
     test_elements = opts.batch_size * opts.test_batch_size
     test_set = torch.utils.data.random_split(test_set, [test_elements, len(test_set) - test_elements])[0]
-
+    
     train_loader = DataLoader(train_set, batch_size=opts.batch_size,
                               shuffle=True, num_workers=opts.num_workers, pin_memory=True)
     test_loader = DataLoader(test_set, batch_size=opts.batch_size,
@@ -70,6 +75,7 @@ def train(opts):
         avg_loss.reset()
         model.train()
         for i, (img, zbuffer, color) in enumerate(train_loader):
+            print(f'Epoch {epoch}    Itteration {i}/len{len(train_loader)}')
             optimizer.zero_grad()
 
             img: torch.Tensor = img.float().to(device)
@@ -134,8 +140,8 @@ if __name__ == '__main__':
     parser.add_argument('--log_iter', type=int, default=1000)
     parser.add_argument('--epochs', type=int)
     parser.add_argument('--lr', type=float, default=3e-4)
-    parser.add_argument('--losses', nargs='+', default=['mse', 'intensity'])
-    parser.add_argument('--l_weight', nargs='+', default=[1, 1], type=float)
+    parser.add_argument('--losses', nargs='+', default=['mse', 'intensity', 'SIMM'])
+    parser.add_argument('--l_weight', nargs='+', default=[1, 1, 0.5], type=float)
     parser.add_argument('--tb', action='store_true')
     parser.add_argument('--padding', default='zeros', type=str)
     parser.add_argument('--trans_conv', action='store_true')

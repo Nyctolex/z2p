@@ -1,3 +1,7 @@
+from functools import cache
+from torchmetrics.functional.image import structural_similarity_index_measure
+
+
 def mse(generated, gt):
     loss = (generated[:, :3, :, :] - gt[:, :3, :, :]) ** 2
     loss = loss.sum(dim=1)
@@ -64,3 +68,8 @@ def background(generated, gt):
     background_mask = (gt == 0)
     loss = generated[background_mask].sum(dim=1).mean()
     return loss
+
+
+
+def SIMM(generated, gt):
+    return 1 - structural_similarity_index_measure(generated, gt, data_range =255)

@@ -166,7 +166,7 @@ def parse_pts(ar, radius=3, dr=(0, 0), const=6):
     :return: np.array NXM with exponential z values for pixel, 0 is inf/background
     """
     res = ar[-1, :-1]
-    res = res[::-1].astype(np.int)
+    res = res[::-1].astype(np.int_)
     ar = ar[:-1]
     x_target, y_target = int(res[0] / 2), int(res[1] / 2)
     return scatter(ar[:, 0] / 2, ar[:, 1] / 2, ar[:, 2], (x_target, y_target), radius=radius, dr=dr, const=const)
